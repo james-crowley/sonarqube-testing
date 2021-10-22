@@ -1,7 +1,8 @@
 import platform
 import random
 import string
-from flask import render_template, request
+import os
+from flask import render_template, request, jsonify
 from . import main
 
 
@@ -31,3 +32,19 @@ def index():
     # If the request was a not a POST request then render the template with the default message
     return render_template("index.html", random_text="This text will change.... hit the button!",
                            arch=str(platform.machine())), 200
+
+
+# Our route for display build info
+@main.route('/build', methods=['GET'])
+def build():
+    # JSON blob
+    build_object = {
+        "VERSION": os.getenv('VERSION'),
+        "CIRCLE_BUILD_URL": os.getenv('CIRCLE_BUILD_URL'),
+        "CIRCLE_SHA1": os.getenv('CIRCLE_SHA1'),
+        "CIRCLE_USERNAME": os.getenv('CIRCLE_USERNAME'),
+        "CIRCLE_BUILD_NUM": os.getenv('CIRCLE_BUILD_NUM')
+    }
+
+    # Return and render JSON object
+    return jsonify(build_object)
