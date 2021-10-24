@@ -10,12 +10,36 @@ jobs:
           name: Install dependencies and build project
           command: pip install --no-cache-dir -r demo/requirements/production.txt
       - sonarcloud/scan
+    
+  build-docker:
+    executor: amd64
+    description: "Build Docker image"
+    steps:
+      - checkout
+      - run:
+          name: Build Docker Image
+          command: docker build -t test:${CIRCLE_SHA1} -f Dockerfile .
+      - snyk/scan:
+          docker-image-name: test:${CIRCLE_SHA1}
+
+executors:
+  browsers-python:
+    docker:
+      - image: circleci/python:3.9-browsers
+
+  amd64:
+    machine:
+      image: ubuntu-2004:202010-01
+      docker_layer_caching: true
+    resource_class: medium
 
 orbs:
   sonarcloud: sonarsource/sonarcloud@1.0.1
+  snyk: snyk/snyk@1.1.1
 
 workflows:
   main:
     jobs:
       - build:
           context: SonarCloud
+      - build-docker
